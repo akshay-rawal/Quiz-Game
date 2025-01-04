@@ -24,7 +24,6 @@
 
 
   if (process.env.NODE_ENV === "production") {
-    console.log("Running in production mode; reading secrets from /etc/secrets");
   
    
   }
