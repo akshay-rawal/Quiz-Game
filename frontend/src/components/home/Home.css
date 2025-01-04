@@ -1,0 +1,39 @@
+.cards {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    align-items: center;
+    margin-top: 6em;
+  }
+  
+  .card {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    text-align: center;
+    height: 100px;
+    width: 250px;
+    border-radius: 10px;
+    color: white;
+    cursor: pointer;
+    transition: 400ms;
+  }
+  
+  .card-1 {
+    background-color: #f43f5e; /* Red */
+  }
+  
+  .card-2 {
+    background-color: #CD5700; /* Blue */
+  }
+  
+  .card-3 {
+    background-color: #22c55e; /* Green */
+  }
+  
+  .card-4 {
+    background-color: #f59e0b; /* Orange */
+  }
+  
+  /* Other CSS styles for hover effects, etc., remain the same */
