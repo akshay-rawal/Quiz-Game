@@ -45,7 +45,7 @@ console.log("JWT_REFRESH_SECRET:", process.env.JWT_REFRESH_SECRET);
   app.use(
     cors({
       origin: [
-        "https://quizgame-8.onrender.com",
+        "https://quiz-game-tq1z.onrender.com",
         "http://localhost:4001", // Optional for React dev server
         "http://localhost:5173",
       ],
