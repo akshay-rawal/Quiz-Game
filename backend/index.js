@@ -20,15 +20,13 @@
   import guestUsers from './routes/guestUser/guestUsers.js';
   import path from "path";
   import { fileURLToPath } from "url";
-  import fs from "fs";
 
 
 
   if (process.env.NODE_ENV === "production") {
     console.log("Running in production mode; reading secrets from /etc/secrets");
   
-    process.env.JWT_SECRET = fs.readFileSync("/etc/secrets/JWT_SECRET", "utf-8").trim();
-    process.env.JWT_REFRESH_SECRET = fs.readFileSync("/etc/secrets/JWT_REFRESH_SECRET", "utf-8").trim();
+   
   }
   
 console.log("NODE_ENV:", process.env.NODE_ENV);
