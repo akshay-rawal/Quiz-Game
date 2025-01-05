@@ -1,32 +1,47 @@
-// GuestUserContext.js
-import React, { createContext, useState, useContext } from 'react';
+import React, { createContext, useState, useEffect } from "react";
 
-const GuestUserContext = createContext();
-
-export const useGuestUser = () => useContext(GuestUserContext);
+// Creating the context
+export const GuestUserContext = createContext();
 
 export const GuestUserProvider = ({ children }) => {
-  const [guestUser, setGuestUser] = useState(null);
-
-  const loginAsGuest = async () => {
-    try {
-      // Correct fetch URL using the environment variable
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/guest`);
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch guest user');
-      }
-
-      // Parse response as JSON
-      const data = await response.json();
-      setGuestUser(data);
-    } catch (error) {
-      console.error('Error logging in as guest:', error);
+  // Load the guest user data from localStorage if available
+  const loadGuestUser = () => {
+    const savedGuestUser = localStorage.getItem("guestUser");
+    if (savedGuestUser) {
+      return JSON.parse(savedGuestUser);
     }
+    return {
+      isGuest: true,
+      scores: {},
+    };
+  };
+
+  const [guestUser, setGuestUser] = useState(loadGuestUser);
+
+  // Save guest user data to localStorage whenever it changes
+  useEffect(() => {
+    if (guestUser.isGuest) {
+      localStorage.setItem("guestUser", JSON.stringify(guestUser));
+    }
+  }, [guestUser]);
+
+  // Function to update guest user's score for a particular category
+  const updateGuestUserScore = (category, newScore) => {
+    setGuestUser((prev) => {
+      const updatedScores = {
+        ...prev.scores,
+        [category]: newScore,
+      };
+
+      return {
+        ...prev,
+        scores: updatedScores,
+      };
+    });
   };
 
   return (
-    <GuestUserContext.Provider value={{ guestUser, loginAsGuest }}>
+    <GuestUserContext.Provider value={{ guestUser, updateGuestUserScore }}>
       {children}
     </GuestUserContext.Provider>
   );

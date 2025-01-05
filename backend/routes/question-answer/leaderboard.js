@@ -1,52 +1,54 @@
 import express from "express";
 import Score from "../../models/scoreSchema.js";
 import mongoose from "mongoose";
+import authenticate from "../../middleware/authenticate.js";
 
-import authenticate from '../../middleware/authenticate.js';
+const router = express.Router();
 
-const router = express.Router()
-router.get("/leaderboard", authenticate, async (req, res) => {
-    console.log("received token:",req.headers.authorization);
-    console.log('Authenticated User ID:', req.userId);
+// In-memory cache for guest user data (should be maintained in memory)
+const guestUserCache = {}; // Ensure this is initialized somewhere else in the application
 
-    try {
-        if (!req.userId) {
-            console.log("Request rejected: User not authenticated");
-            return res.status(401).json({ message: "User not authenticated." });
-        }
+// Route to get the leaderboard
+router.get("/leaderboard", async (req, res) => {
+  const isGuestUser = req.query.guest === "true"; // Check if the request is for a guest user
+  
+  try {
+    if (isGuestUser) {
+      // Fetch guest user leaderboard data from the cache
+      const leaderboard = Object.entries(guestUserCache).map(([category, data]) => ({
+        _id: category,
+        totalScore: data.score,
+        correctAnswers: data.correctAnswer.length,
+        incorrectAnswers: data.inCorrectAnswer.length,
+        pendingAnswers: data.pendingAnswer.length,
+      }));
 
-        const authenticatedUserId = req.userId;
-
-        // Fetch scores grouped by user and category
-        const userScores = await Score.aggregate([
-            { $match: { userId: new mongoose.Types.ObjectId(authenticatedUserId) } },
-            
-            {
-                $group: {
-                    _id: "$category",
-                    totalScore: { $sum: "$score" },
-                    correctAnswers: { $sum: { $size: "$correctAnswer" } },
-                    incorrectAnswers: { $sum: { $size: "$inCorrectAnswer" } },
-                    pendingAnswers: { $sum: { $size: "$pendingAnswer" } },
-                },
-            },
-            { $sort: { totalScore: -1 } }, // Sort categories by total score
-        ]);
-        console.log("Aggregation Output:", userScores);
-        console.log("Aggregation match for userId:", authenticatedUserId);
-        if (!userScores.length) {
-            console.log("No scores found for user:", authenticatedUserId);
-            return res.status(404).json({ message: "No scores found for this user." });
-        }
-
-        return res.status(200).json({ leaderboard: userScores });
-    } catch (error) {
-        console.error("Error fetching leaderboard:", error);
-        return res.status(500).json({ message: "Error fetching leaderboard." });
+      return res.status(200).json({ leaderboard });
     }
+
+    // For regular authenticated users, fetch data from the database
+    const authenticatedUserId = req.userId;
+    
+    // Aggregate user scores by category for the authenticated user
+    const userScores = await Score.aggregate([
+      { $match: { userId: new mongoose.Types.ObjectId(authenticatedUserId) } },
+      {
+        $group: {
+          _id: "$category", // Group by category
+          totalScore: { $sum: "$score" }, // Sum up the scores
+          correctAnswers: { $sum: { $size: "$correctAnswer" } }, // Count of correct answers
+          incorrectAnswers: { $sum: { $size: "$inCorrectAnswer" } }, // Count of incorrect answers
+          pendingAnswers: { $sum: { $size: "$pendingAnswer" } }, // Count of pending answers
+        },
+      },
+      { $sort: { totalScore: -1 } }, // Sort by total score in descending order
+    ]);
+
+    return res.status(200).json({ leaderboard: userScores });
+  } catch (error) {
+    console.error("Error fetching leaderboard:", error);
+    return res.status(500).json({ message: "Error fetching leaderboard." });
+  }
 });
-
-
-
 
 export default router;

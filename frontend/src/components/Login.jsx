@@ -1,11 +1,10 @@
-import { useState } from "react";
+import { useContext, useState } from "react";
 import { useDispatch } from "react-redux";
 import { login } from '../store/store.js';
 import { useNavigate } from "react-router-dom";
 import axiosInstance from "../utills/axios.js";
 
-import {useGuestUser} from "../guestuser/GuestuserContext.jsx"
-
+import { GuestUserContext } from "../guestuser/GuestuserContext.jsx";
 function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -13,7 +12,7 @@ function Login() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const {loginAsGuest} = useGuestUser();
+  const {updateGuestUserScore} = useContext(GuestUserContext);
 
   
   const handleLogin = async (e) => {
@@ -46,7 +45,7 @@ function Login() {
     }
   };
   const handleGuestLogin = async () => {
-    await loginAsGuest(); // Trigger the guest login function
+    await updateGuestUserScore(); // Trigger the guest login function
     navigate("/home"); // Optionally, navigate to home after guest login
   };
 

@@ -1,68 +1,97 @@
-import { useEffect, useState } from "react";
-import axiosInstance from "../utills/axios";
+import { useContext, useEffect, useState } from "react";
 import { useTheme } from "./ThemeContext";
-import ProtectedRoute from '../guestuser/ProtectedRoute.jsx'
+import { GuestUserContext } from "../guestuser/GuestuserContext";
+import axiosInstance from "../utills/axios";
 
 const Leaderboard = () => {
- 
-    const {isDark} = useTheme();
+  const { isDark } = useTheme();
+  const { guestUser, scores } = useContext(GuestUserContext); // Get guest user scores
   const [leaderboard, setLeaderboard] = useState([]);
+  const [loading, setLoading] = useState(true); // State to manage loading
+  const [error, setError] = useState(null); // State to manage errors
 
-  // Function to fetch leaderboard data
   const fetchLeaderboard = async () => {
-    try {
-      const response = await axiosInstance.get("/leaderboard",
-       );
-      setLeaderboard(response.data.leaderboard);
-    } catch (error) {
-      console.error("Error fetching leaderboard:", error);
+    console.log("Fetching leaderboard...");
+    setLoading(true); // Start loading
+    setError(null); // Reset error occur
+
+    if (guestUser) {
+      // Populate leaderboard with guest user's local scores
+      console.log("Fetching guest user leaderboard...");
+      const guestLeaderboard = Object.entries(scores).map(([category, totalScore]) => ({
+        _id: category,
+        totalScore,
+        correctAnswers: totalScore.correctAnswers || 0,
+        incorrectAnswers: totalScore.incorrectAnswers || 0,
+        pendingQuestions: totalScore.pendingQuestions || 0,
+      }));
+      setLeaderboard(guestLeaderboard);
+      setLoading(false); // End loading
+    } else {
+      try {
+        const response = await axiosInstance.post("/leaderboard");
+        console.log("Leaderboard data fetched successfully:", response.data);
+        setLeaderboard(response.data.leaderboard);
+      } catch (error) {
+        console.error("Error fetching leaderboard:", error);
+        setError("Failed to load leaderboard. Please try again later.");
+      } finally {
+        setLoading(false); // End loading
+      }
     }
   };
 
   useEffect(() => {
     fetchLeaderboard();
-  }, []);
+  }, [guestUser]);
 
   return (
-    <ProtectedRoute>
-    <div className={`p-6 min-h-screen ${isDark ? 'bg-gray-900 text-white' : 'bg-gray-50 text-black'}`}>
-    <h2 className={`text-2xl font-bold mb-6 text-center ${isDark ? 'bg-gray-900 text-white' : 'bg-gray-50 text-black'}`}>
-      Leaderboard
-    </h2>
-    <table className={`min-w-full table-auto shadow-md rounded-lg  max-w-full overflow-x-auto ${isDark ? 'bg-gray-900 text-white' : 'bg-gray-50 text-black'}`}>
-      <thead>
-        <tr className={`bg-gray-200 text-left ${isDark ? 'bg-gray-700 text-white' : 'bg-gray-300 text-black'} `}>
-          <th className="px-4 py-2  text-sm sm:text-base">Category</th>
-          <th className="px-4 py-2  text-sm sm:text-base">Total Score</th>
-          <th className="px-4 py-2  text-sm sm:text-base">Correct Answers</th>
-          <th className="px-4 py-2  text-sm sm:text-base">Incorrect Answers</th>
-          <th className="px-4 py-2  text-sm sm:text-base">Pending Questions</th>
-        </tr>
-      </thead>
-      <tbody>
-        {leaderboard.length > 0 ? (
-          leaderboard.map((category) => (
-            <tr key={category._id} className={`${
-              isDark ? "bg-gray-300 text-black" : "bg-gray-200 text-black"
-            }`}>
-              <td className="px-4 py-2 ">{category._id}</td>
-              <td className="px-4 py-2">{category.totalScore}</td>
-              <td className="px-4 py-2">{category.correctAnswers}</td>
-              <td className="px-4 py-2">{category.incorrectAnswers}</td>
-              <td className="px-4 py-2">{category.pendingAnswers}</td>
+    <div className={`p-6 min-h-screen ${isDark ? "bg-gray-900 text-white" : "bg-gray-50 text-black"}`}>
+      <h2 className={`text-2xl font-bold mb-6 text-center ${isDark ? "text-white" : "text-black"}`}>
+        Leaderboard
+      </h2>
+
+      {loading && (
+        <div className="flex justify-center items-center py-4">
+          <div className="loader">Loading...</div>
+        </div>
+      )}
+
+      {error && <div className="text-red-500 text-center">{error}</div>}
+
+      {!loading && !error && (
+        <table className={`min-w-full table-auto shadow-md rounded-lg max-w-full overflow-x-auto ${isDark ? "bg-gray-900 text-white" : "bg-gray-50 text-black"}`}>
+          <thead>
+            <tr className={`bg-gray-200 text-left ${isDark ? "bg-gray-700 text-white" : "bg-gray-300 text-black"}`}>
+              <th className="px-4 py-2">Category</th>
+              <th className="px-4 py-2">Total Score</th>
+              <th className="px-4 py-2">Correct Answers</th>
+              <th className="px-4 py-2">Incorrect Answers</th>
+              <th className="px-4 py-2">Pending Questions</th>
             </tr>
-          ))
-        ) : (
-          <tr>
-            <td colSpan="5" className="px-4 py-2 text-center text-gray-500 dark:text-gray-400">
-              No leaderboard data available.
-            </td>
-          </tr>
-        )}
-      </tbody>
-    </table>
-  </div>
-  </ProtectedRoute>
+          </thead>
+          <tbody>
+            {leaderboard.length > 0 ? (
+              leaderboard.map((category) => (
+                <tr key={category._id} className={`${isDark ? "bg-gray-300 text-black" : "bg-gray-200 text-black"}`}>
+                  <td className="px-4 py-2">{category._id}</td>
+                  <td className="px-4 py-2">{category.totalScore}</td>
+                  <td className="px-4 py-2">{category.correctAnswers}</td>
+                  <td className="px-4 py-2">{category.incorrectAnswers}</td>
+                  <td className="px-4 py-2">{category.pendingQuestions}</td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan="5" className="px-4 py-2 text-center">
+                  No data available.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      )}
+    </div>
   );
 };
 

@@ -3,7 +3,9 @@ import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { login } from "../store/store";
 import axiosInstance from "../utills/axios";
-import {useGuestUser} from "../guestuser/GuestuserContext.jsx"
+import { GuestUserContext } from "../guestuser/GuestuserContext";
+
+
 function Signup() {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
@@ -11,7 +13,7 @@ function Signup() {
   const [error, setError] = useState("");
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const {loginAsGuest} = useGuestUser();
+  const {updateGuestUserScore} = useContext(GuestUserContext);
 
 
   const handleSignup = async () => {
@@ -49,7 +51,7 @@ function Signup() {
     }
   };
   const handleGuestLogin = async () => {
-    await loginAsGuest(); // Trigger the guest login function
+    await updateGuestUserScore(); // Trigger the guest login function
     navigate("/home"); // Optionally, navigate to home after guest login
   };
   return (
