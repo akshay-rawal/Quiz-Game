@@ -44,12 +44,16 @@ router.get("/questions/:category/:userId", async (req, res) => {
     if (isGuestUser) {
       // Handle guest user in cache
       if (!guestUserCache[category]) {
+        const questions = await Question.find({ category }).limit(10); // Limit to avoid memory issues
+
         guestUserCache[category] = {
           answeredQuestions: [],
           pendingAnswer: [],
           score: 0,
           correctAnswer: [],
           inCorrectAnswer: [],
+          questions: questions.map((q) => q.toObject()), // Convert MongoDB documents to plain objects
+
         };
       }
       userScore = guestUserCache[category];

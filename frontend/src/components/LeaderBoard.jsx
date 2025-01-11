@@ -13,21 +13,25 @@ const Leaderboard = () => {
   const fetchLeaderboard = async () => {
     console.log("Fetching leaderboard...");
     setLoading(true); // Start loading
-    setError(null); // Reset error occur
+    setError(null); // Reset error
 
     if (guestUser) {
-      // Populate leaderboard with guest user's local scores
-      console.log("Fetching guest user leaderboard...");
-      const guestLeaderboard = Object.entries(scores).map(([category, totalScore]) => ({
+      console.log("Guest user detected. Scores:", scores);
+    
+      // Ensure scores is a valid object before using Object.entries
+      const safeScores = scores || {};
+      const guestLeaderboard = Object.entries(safeScores).map(([category, totalScore]) => ({
         _id: category,
-        totalScore,
-        correctAnswers: totalScore.correctAnswers || 0,
-        incorrectAnswers: totalScore.incorrectAnswers || 0,
-        pendingQuestions: totalScore.pendingQuestions || 0,
+        totalScore: totalScore?.totalScore || 0,
+        correctAnswers: totalScore?.correctAnswers || 0,
+        incorrectAnswers: totalScore?.incorrectAnswers || 0,
+        pendingQuestions: totalScore?.pendingQuestions || 0,
       }));
+    
       setLeaderboard(guestLeaderboard);
       setLoading(false); // End loading
-    } else {
+    }
+     else {
       try {
         const response = await axiosInstance.post("/leaderboard");
         console.log("Leaderboard data fetched successfully:", response.data);
