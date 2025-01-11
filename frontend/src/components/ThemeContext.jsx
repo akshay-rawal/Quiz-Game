@@ -31,7 +31,6 @@ export const ThemeProvider = ({ children }) => {
                 setIsDark(themePreference); // Set theme from backend
                 localStorage.setItem("isDark", JSON.stringify(themePreference)); // Sync with localStorage
             } catch (error) {
-                console.error("Error fetching theme:", error);
             } finally {
                 setIsThemeLoaded(true); // Mark theme as loaded
             }
@@ -67,9 +66,7 @@ export const ThemeProvider = ({ children }) => {
                     { userId: user.userId, isDark: newTheme },
                     { headers: { Authorization: `Bearer ${token}` } }
                 );
-                console.log("Theme preference saved.");
             } catch (error) {
-                console.error("Error saving theme preference:", error);
             }
         }
     };

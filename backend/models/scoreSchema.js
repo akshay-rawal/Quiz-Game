@@ -42,7 +42,6 @@
             ref: "Question",
             default: [],
         },
-       // timeTaken: { type: Number, required: true }, // time in seconds
 
     answers:[
         {  questionId:{type:mongoose.Schema.Types.ObjectId,ref:"Question",required:true},

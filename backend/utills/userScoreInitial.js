@@ -27,10 +27,8 @@ export const initializeUserScore = async (userId, category) => {
       answers: [],
     });
 
-    console.log("Initialized userScore with empty fields:", newUserScore);
     return newUserScore;
   } catch (error) {
-    console.error("Error initializing user score:", error);
     throw error;
   }
 };

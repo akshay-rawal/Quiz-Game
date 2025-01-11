@@ -1,17 +1,15 @@
 import jwt from 'jsonwebtoken';
 
 const authenticate = (req, res, next) => {
-    // Check if the user is a guest (you can adjust this logic based on how you identify guests)
-    const isGuestUser = req.headers['x-guest'] === 'true';  // Look for 'x-guest' header sent by frontend
+    const isGuestUser = req.headers['x-guest'] === 'true';  
 
     if (isGuestUser) {
-        req.userId = 'guest'; // Set userId as 'guest' for guest users
-        return next(); // Proceed with the request
+        req.userId = 'guest'; 
+        return next(); 
     }
 
     const authHeader = req.header("Authorization");
 
-    // If there is no Authorization header or if it doesn't contain a valid Bearer token, return 401
     if (!authHeader || !authHeader.startsWith("Bearer")) {
         return res.status(401).json({ message: "Access denied. Invalid token format." });
     }
@@ -25,9 +23,9 @@ const authenticate = (req, res, next) => {
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-        req.token = token; // Set the token on the request object
-        req.user = decoded; // Attach decoded user data to the request object
-        req.userId = decoded.userId; // Attach userId to the request object
+        req.token = token; 
+        req.user = decoded; 
+        req.userId = decoded.userId; 
 
         next();
     } catch (err) {

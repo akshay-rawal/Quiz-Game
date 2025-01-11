@@ -28,12 +28,10 @@ try {
 
    
     const accessToken = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
-    console.log("Signed JWT Token:", accessToken);
 
     const refreshToken = jwt.sign({userId:user._id},process.env.JWT_REFRESH_SECRET
 ,{expiresIn:'7d'})
     
-console.log("Signed JWT Refresh Token:", refreshToken); // Log the correct token
 
 
     res.cookie('refreshToken',refreshToken,{
@@ -50,8 +48,7 @@ console.log("Signed JWT Refresh Token:", refreshToken); // Log the correct token
       
       { $setOnInsert: { isDark: false,userId: user._id  } }, // Default to light mode if not already set
       { upsert: true, new: true }
-  );console.log("Theme Preference:", themePreference);
-
+  );
 
 
 

@@ -10,7 +10,7 @@ const questionSchema = new mongoose.Schema(
             {   
                 type: [String],
                 required: true,
-                validate: (optionsArray) => optionsArray.length === 4, // Ensure there are 4 options
+                validate: (optionsArray) => optionsArray.length === 4, 
             
                     message:"there must be four options"
                 

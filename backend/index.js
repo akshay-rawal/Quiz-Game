@@ -28,9 +28,7 @@
    dotenv.config();
   }
   
-console.log("NODE_ENV:", process.env.NODE_ENV);
-console.log("JWT_SECRET:", process.env.JWT_SECRET);
-console.log("JWT_REFRESH_SECRET:", process.env.JWT_REFRESH_SECRET);
+
 
   // Utility to get __dirname in ES module scope
   const __filename = fileURLToPath(import.meta.url);
@@ -61,10 +59,8 @@ console.log("JWT_REFRESH_SECRET:", process.env.JWT_REFRESH_SECRET);
 
   // MongoDB Connection
   const mongoDb = async () => {
-    console.log("MONGO_URL:", process.env.MONGO_URL);
     try {
       await mongoose.connect(process.env.MONGO_URL);
-      console.log("MongoDB connected successfully");
     } catch (error) {
       process.exit(1); // Exit the process if MongoDB fails to connect
     }
@@ -95,10 +91,8 @@ console.log("JWT_REFRESH_SECRET:", process.env.JWT_REFRESH_SECRET);
   // Serve index.html for all unmatched routes
   app.get("*", (req, res) => {
     const indexPath = path.join(frontendPath, "index.html");
-    console.log("Serving file:", indexPath); // Debugging line to check the file path
     res.sendFile(indexPath, (err) => {
       if (err) {
-        console.error("Error serving file:", err);
         res.status(500).send("Error serving the index.html");
       }
     });
@@ -109,5 +103,4 @@ console.log("JWT_REFRESH_SECRET:", process.env.JWT_REFRESH_SECRET);
 
   // Start the server
   app.listen(port, () => {
-    console.log(`Server is running on http://localhost:${port}`);
   });

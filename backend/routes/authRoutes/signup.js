@@ -6,8 +6,7 @@ import ThemePreference from "../../models/themeSchema.js";
 const router = express.Router();
 
 router.post("/signup", async (req, res) => {
-  console.log("Signup route was hit");
-  console.log(req.body);
+
 
   try {
     const { username, email, password } = req.body;
@@ -44,7 +43,6 @@ router.post("/signup", async (req, res) => {
     try {
       await user.save();
     } catch (err) {
-      console.error("Error saving user:", err);
       return res.status(500).json({
         message: "Error saving user to database",
         error: err.message,
@@ -57,7 +55,6 @@ router.post("/signup", async (req, res) => {
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
-    console.log("Test token generated successfully:", accessToken);
 
     const refreshToken = jwt.sign(
       { userId: user._id },
@@ -80,7 +77,6 @@ router.post("/signup", async (req, res) => {
       { upsert: true, new: true }
     );
 
-    console.log("Theme Preference:", themePreference);
 
     // Respond with success
     res.status(201).json({
@@ -94,7 +90,6 @@ router.post("/signup", async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("Signup error:", error);
     res.status(500).json({
       message: "An error occurred during signup.",
       error: error.message,

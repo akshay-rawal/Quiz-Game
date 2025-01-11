@@ -37,7 +37,6 @@ function Login() {
         alert("Login failed: Missing user or token in response");
       }
     } catch (error) {
-      console.error("Error details:", error);
       const errorMessage = error.response?.data?.message || "An error occurred during login.";
       alert(errorMessage);
     } finally {

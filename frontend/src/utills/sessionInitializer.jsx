@@ -33,7 +33,6 @@ function SessionManager({ children }) {
                     }
                 });
         } else {
-            console.info('No token found or session already validated. Skipping session restoration.');
         }
     }, [dispatch, token, user, isSessionValidated]); // Add `isSessionValidated` as a dependency to control effect running
 

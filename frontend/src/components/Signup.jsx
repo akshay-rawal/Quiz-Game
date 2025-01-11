@@ -24,7 +24,6 @@ function Signup() {
         password,
       });
 
-      console.log("Signup successful:", response.data);
 
       const { accessToken, themePreference, user } = response.data;
 
@@ -39,12 +38,10 @@ function Signup() {
       const { isDark } = themePreference || {};
       localStorage.setItem("isDark", JSON.stringify(isDark));
 
-      console.log("Theme preference saved:", isDark);
 
       // Redirect to home after successful signup
       navigate("/home");
     } catch (error) {
-      console.error("Signup error:", error);
       setError(
         error.response?.data?.message || "An error occurred during signup."
       );

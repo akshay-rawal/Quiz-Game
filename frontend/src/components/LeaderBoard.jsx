@@ -11,12 +11,10 @@ const Leaderboard = () => {
   const [error, setError] = useState(null); // State to manage errors
 
   const fetchLeaderboard = async () => {
-    console.log("Fetching leaderboard...");
     setLoading(true); // Start loading
     setError(null); // Reset error
 
     if (guestUser) {
-      console.log("Guest user detected. Scores:", scores);
     
       // Ensure scores is a valid object before using Object.entries
       const safeScores = scores || {};
@@ -34,10 +32,8 @@ const Leaderboard = () => {
      else {
       try {
         const response = await axiosInstance.post("/leaderboard");
-        console.log("Leaderboard data fetched successfully:", response.data);
         setLeaderboard(response.data.leaderboard);
       } catch (error) {
-        console.error("Error fetching leaderboard:", error);
         setError("Failed to load leaderboard. Please try again later.");
       } finally {
         setLoading(false); // End loading

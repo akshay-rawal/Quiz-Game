@@ -13,8 +13,7 @@ const parseJSON = (value, fallback = null) => {
 const initialUser = parseJSON(localStorage.getItem('user'), null);
 const initialToken = localStorage.getItem('token') || null;
 
-console.log('Parsed initial user:', initialUser);
-console.log('Parsed initial token:', initialToken);
+
 
 // Initial state for the user slice
 const initialState = {
@@ -36,7 +35,6 @@ const userSlice = createSlice({
       const userId = user?.userId;
 
       if (!userId) {
-        console.error('Missing userId in login payload:', action.payload);
         return;
       }
 
