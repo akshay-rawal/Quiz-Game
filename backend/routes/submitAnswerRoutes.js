@@ -92,6 +92,7 @@ export const submitAnswerRoutes = async (req, res) => {
   }
 };
 
-router.post("/submit/auth", submitAnswerRoutes);
+router.post("/auth", submitAnswerRoutes);  // keep as-is
+
 
 export default router;

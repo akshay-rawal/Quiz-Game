@@ -77,7 +77,7 @@
   app.use("/api", answer);
   app.use("/api", questionRoutes);
   app.use("/api", userScore);
-  app.use("/api/auth", submitAnswerRoutes);
+  app.use("/api/submit", submitAnswerRoutes);
   app.use("/api", getLeaderboard);
   app.use('/api', deleteQuestion);
   app.use('/api', themeRoutes);
