@@ -9,7 +9,7 @@
   import answer from "./routes/question-answer/answer.js";
   import userScore from "./routes/userScore.js";
   import questionRoutes from "./routes/question/questionRoutes.js";
-  import   {} from "./routes/"
+  import submitAnswerRoutes from "./routes/submitAnswerRoutes.js"
   import sessionRoutes from './routes/authRoutes/sessionRoutes.js';
   import bodyParser from "body-parser";
   import getLeaderboard from "./routes/question-answer/leaderboard.js";
