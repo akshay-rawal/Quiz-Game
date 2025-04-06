@@ -127,7 +127,7 @@ function CategoryPage() {
     }
 
     try {
-      const response = await axiosInstance.post("/submit", {
+      const response = await axiosInstance.post("/submit/auth", {
         userId: user.userId,
         questionId,
         selectedOption,

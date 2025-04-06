@@ -9,7 +9,7 @@
   import answer from "./routes/question-answer/answer.js";
   import userScore from "./routes/userScore.js";
   import questionRoutes from "./routes/question/questionRoutes.js";
-  import submitAnswerRoutes from "./routes/submitAnswerRoutes.js";
+  import   {} from "./routes/"
   import sessionRoutes from './routes/authRoutes/sessionRoutes.js';
   import bodyParser from "body-parser";
   import getLeaderboard from "./routes/question-answer/leaderboard.js";
@@ -77,7 +77,7 @@
   app.use("/api", answer);
   app.use("/api", questionRoutes);
   app.use("/api", userScore);
-  app.use("/api", submitAnswerRoutes);
+  app.use("/api/auth", submitAnswerRoutes);
   app.use("/api", getLeaderboard);
   app.use('/api', deleteQuestion);
   app.use('/api', themeRoutes);
