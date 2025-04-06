@@ -33,17 +33,25 @@ function CategoryPage() {
 
       if (guestUser.isGuest) {
         // Handle guest user data
-        const guestQuestionsResponse = await axiosInstance.get(`/questions/${category}/guest`, {
-          params: { page: currentPage, limit: 5 },
-        });
-        if (guestQuestionsResponse.data && guestQuestionsResponse.data.questions) {
+        const guestQuestionsResponse = await axiosInstance.get(
+          `/questions/${category}/guest`,
+          {
+            params: { page: currentPage, limit: 5 },
+          }
+        );
+        if (
+          guestQuestionsResponse.data &&
+          guestQuestionsResponse.data.questions
+        ) {
           setQuestions(guestQuestionsResponse.data.questions);
           setTotalPage(guestQuestionsResponse.data.totalPages);
-          setPendingQuestions(guestQuestionsResponse.data.pendingAnswerCount || 0);
+          setPendingQuestions(
+            guestQuestionsResponse.data.pendingAnswerCount || 0
+          );
         } else {
           setError("Failed to load questions for guest user.");
         }
-  
+
         return; // Exit fetchData for guest users
       }
 
@@ -60,9 +68,17 @@ function CategoryPage() {
         setError("Failed to load questions.");
       }
 
-      const scoreResponse = await axiosInstance.get(`/user-score/${user.userId}/${category}`);
+      const scoreResponse = await axiosInstance.get(
+        `/user-score/${user.userId}/${category}`
+      );
       if (scoreResponse.data.userScore) {
-        const { score, correctAnswer, inCorrectAnswer, answeredQuestions, pendingAnswer } = scoreResponse.data.userScore;
+        const {
+          score,
+          correctAnswer,
+          inCorrectAnswer,
+          answeredQuestions,
+          pendingAnswer,
+        } = scoreResponse.data.userScore;
         setScore(score || 0);
         setCorrectAnswers(correctAnswer || []);
         setIncorrectAnswers(inCorrectAnswer || []);
@@ -71,7 +87,9 @@ function CategoryPage() {
 
         const feedbackMap = {};
         scoreResponse.data.userScore.answers.forEach((ans) => {
-          feedbackMap[ans.questionId] = ans.isCorrect ? "Correct answer!" : "Incorrect answer.";
+          feedbackMap[ans.questionId] = ans.isCorrect
+            ? "Correct answer!"
+            : "Incorrect answer.";
         });
         setFeedback(feedbackMap);
       }
@@ -100,7 +118,7 @@ function CategoryPage() {
     } else {
       navigate("/");
     }
-  }, [category, user, token, currentPage,guestUser.isGuest]);
+  }, [category, user, token, currentPage, guestUser.isGuest]);
 
   const handleSubmit = async (questionIndex, selectedOption) => {
     const questionId = questions[questionIndex]._id;
@@ -118,12 +136,20 @@ function CategoryPage() {
       const { isCorrect, updatedScore, feedbackMessage } = response.data;
 
       setFeedback((prev) => ({ ...prev, [questionId]: feedbackMessage }));
-      setSubmittedAnswers((prev) => ({ ...prev, [questionId]: { submitted: true, clicked: false } }));
+      setSubmittedAnswers((prev) => ({
+        ...prev,
+        [questionId]: { submitted: true, clicked: false },
+      }));
       setScore(updatedScore);
       setCorrectAnswers((prev) => (isCorrect ? [...prev, questionId] : prev));
-      setIncorrectAnswers((prev) => (!isCorrect ? [...prev, questionId] : prev));
+      setIncorrectAnswers((prev) =>
+        !isCorrect ? [...prev, questionId] : prev
+      );
     } catch (error) {
-      setFeedback((prev) => ({ ...prev, [questionId]: "There was an error submitting your answer." }));
+      setFeedback((prev) => ({
+        ...prev,
+        [questionId]: "There was an error submitting your answer.",
+      }));
     }
   };
 
@@ -143,7 +169,11 @@ function CategoryPage() {
     }));
   };
 
-  const handleGuestUserScoreUpdate = (questionId, selectedOption, isCorrect) => {
+  const handleGuestUserScoreUpdate = (
+    questionId,
+    selectedOption,
+    isCorrect
+  ) => {
     if (guestUser.isGuest) {
       updateGuestUserScore(questionId, selectedOption, isCorrect);
     }
@@ -155,7 +185,11 @@ function CategoryPage() {
         isDark ? "bg-gray-900 text-white" : "bg-gray-50 text-black"
       } flex flex-col sm:flex-wrap`}
     >
-      <h2 className={`text-2xl sm:text-2xl font-bold mb-6 text-center ${isDark ? 'text-white' : 'text-black'}`}>
+      <h2
+        className={`text-2xl sm:text-2xl font-bold mb-6 text-center ${
+          isDark ? "text-white" : "text-black"
+        }`}
+      >
         Questions for {category}
       </h2>
       {loading && (
@@ -175,7 +209,9 @@ function CategoryPage() {
                   isDark ? "bg-gray-800 text-white" : "bg-white text-black"
                 } flex flex-col space-y-4`}
               >
-                <h3 className="text-lg font-semibold mb-4">{question.questionText}</h3>
+                <h3 className="text-lg font-semibold mb-4">
+                  {question.questionText}
+                </h3>
 
                 <div className="flex flex-col sm:flex-row sm:flex-wrap gap-4">
                   {question.options[0].map((option, i) => {
@@ -197,7 +233,10 @@ function CategoryPage() {
                           }}
                           className="h-5 w-5 text-blue-600 border-gray-300 focus:ring-blue-500"
                         />
-                        <label htmlFor={`option-${index}-${i}`} className="ml-2">
+                        <label
+                          htmlFor={`option-${index}-${i}`}
+                          className="ml-2"
+                        >
                           {optionLabel}. {option}
                         </label>
                       </div>
@@ -210,16 +249,23 @@ function CategoryPage() {
                     onClick={() => {
                       const selectedOption = selectedAnswers[question._id];
                       if (selectedOption) {
-                        const isCorrect = selectedOption === question.correctAnswer;
+                        const isCorrect =
+                          selectedOption === question.correctAnswer;
                         handleSubmit(index, selectedOption);
-                        handleGuestUserScoreUpdate(question._id, selectedOption, isCorrect);
+                        handleGuestUserScoreUpdate(
+                          question._id,
+                          selectedOption,
+                          isCorrect
+                        );
                       } else {
                         alert("Please select an option before submitting");
                       }
                     }}
                     className={`flex-1 sm:flex-none w-full sm:w-auto text-center py-2 px-4 bg-blue-500 text-white font-semibold rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 transition-all ${
                       submittedAnswers[question._id]?.submitted
-                        ? `bg-gray-400 ${isDark ? "text-black" : "text-gray-700"} cursor-not-allowed`
+                        ? `bg-gray-400 ${
+                            isDark ? "text-black" : "text-gray-700"
+                          } cursor-not-allowed`
                         : "bg-blue-600 text-white hover:bg-blue-700"
                     }`}
                     disabled={submittedAnswers[question._id]?.submitted}
@@ -233,7 +279,9 @@ function CategoryPage() {
                       submittedAnswers[question._id]?.submitted &&
                       !submittedAnswers[question._id]?.clicked
                         ? "bg-blue-600 text-white hover:bg-blue-700"
-                        : `bg-gray-400 ${isDark ? "text-black" : "text-gray-700"} cursor-not-allowed`
+                        : `bg-gray-400 ${
+                            isDark ? "text-black" : "text-gray-700"
+                          } cursor-not-allowed`
                     }`}
                     disabled={
                       !submittedAnswers[question._id]?.submitted ||
@@ -244,7 +292,11 @@ function CategoryPage() {
                   </button>
                 </div>
 
-                <span className={`font-medium mt-2 ${isDark ? 'text-white':'text-black'}`}>
+                <span
+                  className={`font-medium mt-2 ${
+                    isDark ? "text-white" : "text-black"
+                  }`}
+                >
                   {feedback[question._id]}
                 </span>
 
@@ -285,7 +337,9 @@ function CategoryPage() {
 
       <div className="mt-12 w-full">
         <h3 className="text-lg font-bold dark:text-white">Your Score</h3>
-        <p className={isDark ? "text-gray-200" : "text-black"}>Your score: {score}</p>
+        <p className={isDark ? "text-gray-200" : "text-black"}>
+          Your score: {score}
+        </p>
         <p className={isDark ? "text-gray-200" : "text-black"}>
           Correct answers: {correctAnswers.length}
         </p>

@@ -4,6 +4,7 @@ import { useDispatch } from "react-redux";
 import { login } from "../store/store";
 import axiosInstance from "../utills/axios";
 import { GuestUserContext } from "../guestuser/GuestuserContext";
+import { useContext } from "react";
 
 
 function Signup() {
@@ -13,12 +14,13 @@ function Signup() {
   const [error, setError] = useState("");
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const {updateGuestUserScore} = useContext(GuestUserContext);
+
+const {updateGuestUserScore} = useContext(GuestUserContext);
 
 
   const handleSignup = async () => {
     try {
-      const response = await axiosInstance.post("/auth/signup", {
+      const response = await axiosInstance.post("/auth/signup" || VITE_API_URI, {
         username,
         email,
         password,
