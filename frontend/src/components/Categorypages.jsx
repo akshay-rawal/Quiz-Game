@@ -5,6 +5,7 @@ import { useSelector } from "react-redux";
 import { useTheme } from "./ThemeContext";
 import { GuestUserContext } from "../guestuser/GuestuserContext";
 
+
 function CategoryPage() {
   const { guestUser, updateGuestUserScore } = useContext(GuestUserContext);
 
@@ -127,7 +128,7 @@ function CategoryPage() {
     }
 
     try {
-      const response = await axiosInstance.post("/submit/auth", {
+      const response = await axiosInstance.post("/auth/submit-answer", {
         userId: user.userId,
         questionId,
         selectedOption,

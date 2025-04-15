@@ -1,62 +1,50 @@
 import Question from "../models/questionSchema.js";
 import Score from "../models/scoreSchema.js";
 import express from "express";
-import { initializeUserScore } from "../utills/userScoreInitial.js";
 const router = express.Router();
 
-export const submitAnswerRoutes = async (req, res) => {
+
+router.post("/submit-answer", async (req, res) => {
+  console.log("✅ POST /submit-answer hit", req.body);
+
   try {
     const { userId, questionId, selectedOption } = req.body;
 
-    // Check if the required fields are provided
     if (!userId || !questionId || !selectedOption) {
       return res.status(400).json({ message: "Missing required fields" });
     }
 
-    // Fetch the question from the database
     const question = await Question.findById(questionId);
     if (!question) {
       return res.status(404).json({ message: "Question not found." });
     }
 
-    console.log("Category from request body:", question.category);
-
-    // Check if the answer is correct
     const isCorrect = question.correctAnswer === selectedOption;
 
-    // Fetch or create the user's score record
-    console.log("Searching for userScore with userId:", userId, "and category:", question.category);
-
     let userScore = await Score.findOne({ userId, category: question.category });
+    if (!userScore) {
+      return res.status(404).json({ message: "User score not found." });
+    }
 
-   
-        
-      
-      
-    // Ensure fields are initialized if missing
+    // Initialize userScore fields if they don't exist
     userScore.correctAnswer = userScore.correctAnswer || [];
     userScore.inCorrectAnswer = userScore.inCorrectAnswer || [];
     userScore.answeredQuestions = userScore.answeredQuestions || [];
     userScore.answers = userScore.answers || [];
-    userScore.pendingAnswer = userScore.pendingAnswer || [];  
-    
+    userScore.pendingAnswer = userScore.pendingAnswer || [];
 
-   
-
-    
     if (isCorrect) {
       userScore.score += 2;
       userScore.correctAnswer.push(questionId);
     } else {
       userScore.inCorrectAnswer.push(questionId);
     }
-    const feedbackMessage = isCorrect ? "Correct answer!" : "Incorrect answer.";
-    userScore.feedback.set(questionId.toString(), feedbackMessage);
-    userScore.answeredQuestions.push(questionId); // Mark as answered
+
+    userScore.feedback.set(questionId.toString(), isCorrect ? "Correct answer!" : "Incorrect answer.");
+    userScore.answeredQuestions.push(questionId);
     userScore.pendingAnswer = userScore.pendingAnswer.filter(
       (id) => id.toString() !== questionId.toString()
     );
-    console.log("Updated pendingAnswer after filtering:", userScore.pendingAnswer);
 
     userScore.answers.push({
       questionId,
@@ -65,34 +53,29 @@ export const submitAnswerRoutes = async (req, res) => {
       category: question.category,
     });
 
- 
-
-    // Save the updated user score
     await userScore.save();
 
-    const hasAnswerd = userScore.answeredQuestions.includes(questionId)
-    const pendingQuestions = userScore.pendingAnswer.length;
-    const totalQuestions = userScore.totalQuestions;
-
- 
-  
     return res.status(200).json({
       message: "Answer submitted successfully.",
       isCorrect,
-      feedbackMessage,
-      updatedScore:userScore.score,
-      totalQuestions,
-      pendingQuestions, 
-      hasAnswerd,
-    }
-  );
-
+      feedbackMessage: isCorrect ? "Correct answer!" : "Incorrect answer.",
+      updatedScore: userScore.score,
+      totalQuestions: userScore.totalQuestions,
+      pendingQuestions: userScore.pendingAnswer.length,
+      hasAnswerd: userScore.answeredQuestions.includes(questionId),
+    });
   } catch (error) {
-    return res.status(500).json({ message: "Error submitting answer." });
+    console.error("Error in submit-answer route:", error); // Log the error
+    return res.status(500).json({ message: "Error submitting answer.", error: error.message });
   }
-};
+});
 
-router.post("/auth", submitAnswerRoutes);  // keep as-is
+console.log("SubmitAnswer route file loaded");
+
+router.get("/test", (req, res) => {
+  console.log("Test route hit!");
+  res.send("✅ Test route is working!");
+});
 
 
 export default router;

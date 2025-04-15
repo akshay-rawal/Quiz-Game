@@ -20,7 +20,7 @@ const {updateGuestUserScore} = useContext(GuestUserContext);
 
   const handleSignup = async () => {
     try {
-      const response = await axiosInstance.post("/auth/signup" || VITE_API_URI, {
+      const response = await axiosInstance.post("/auth/signup", {
         username,
         email,
         password,

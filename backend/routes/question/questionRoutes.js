@@ -100,7 +100,7 @@ router.get("/questions/:category/:userId", async (req, res) => {
 });
 
 // Route to submit answers (supports guest users)
-router.post("/submit", async (req, res) => {
+router.post("/submit-answer", async (req, res) => {
   const { userId, questionId, selectedOption } = req.body;
   const isGuestUser = userId === "guest";
 

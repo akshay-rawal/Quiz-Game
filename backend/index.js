@@ -1,4 +1,5 @@
-  import express from "express";
+
+ import express from "express";
   import login from './routes/authRoutes/login.js';
   import signup from "./routes/authRoutes/signup.js";
   import logout from "./routes/authRoutes/logout.js";
@@ -9,7 +10,7 @@
   import answer from "./routes/question-answer/answer.js";
   import userScore from "./routes/userScore.js";
   import questionRoutes from "./routes/question/questionRoutes.js";
-  import submitAnswerRoutes from "./routes/submitAnswerRoutes.js"
+  import submitAnswerRoutes from './routes/submitAnswerRoutes.js';
   import sessionRoutes from './routes/authRoutes/sessionRoutes.js';
   import bodyParser from "body-parser";
   import getLeaderboard from "./routes/question-answer/leaderboard.js";
@@ -49,6 +50,8 @@
       allowedHeaders: ["Authorization", "Content-Type"],
       methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
       credentials: true,
+      optionsSuccessStatus: 200,
+
     })
   );
 
@@ -77,7 +80,8 @@
   app.use("/api", answer);
   app.use("/api", questionRoutes);
   app.use("/api", userScore);
-  app.use("/api/submit", submitAnswerRoutes);
+  app.use("/api/auth", submitAnswerRoutes);
+  console.log("Loading submitAnswerRoutes...");
   app.use("/api", getLeaderboard);
   app.use('/api', deleteQuestion);
   app.use('/api', themeRoutes);
@@ -103,4 +107,6 @@
 
   // Start the server
   app.listen(port, () => {
+    console.log(`🚀 Server is running on http://localhost:${port}`);
+
   });
