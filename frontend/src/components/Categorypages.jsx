@@ -1,9 +1,9 @@
 import { useEffect, useState, useContext } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import axiosInstance from "../utills/axios";
 import { useSelector } from "react-redux";
-import { useTheme } from "./ThemeContext";
-import { GuestUserContext } from "../guestuser/GuestuserContext";
+import axiosInstance from "../utills/axios.js";
+import { useTheme } from "./ThemeContext.jsx";
+import { GuestUserContext } from "../guestuser/GuestuserContext.jsx";
 
 
 function CategoryPage() {
@@ -33,7 +33,7 @@ function CategoryPage() {
       setLoading(true);
 
       if (guestUser.isGuest) {
-        // Handle guest user data
+        // Handle guest user data 
         const guestQuestionsResponse = await axiosInstance.get(
           `/questions/${category}/guest`,
           {
@@ -128,8 +128,8 @@ function CategoryPage() {
     }
 
     try {
-      const response = await axiosInstance.post("/auth/submit-answer", {
-        userId: user.userId,
+      const response = await axiosInstance.post("/answersubmit", {
+        userId: user.userId,  
         questionId,
         selectedOption,
       });

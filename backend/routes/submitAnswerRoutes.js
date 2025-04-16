@@ -4,8 +4,8 @@ import express from "express";
 const router = express.Router();
 
 
-router.post("/submit-answer", async (req, res) => {
-  console.log("✅ POST /submit-answer hit", req.body);
+router.post("/answersubmit", async (req, res) => {
+  console.log("✅ POST /answersubmit hit", req.body);
 
   try {
     const { userId, questionId, selectedOption } = req.body;
@@ -75,6 +75,10 @@ console.log("SubmitAnswer route file loaded");
 router.get("/test", (req, res) => {
   console.log("Test route hit!");
   res.send("✅ Test route is working!");
+});
+
+router.get("/test", (req, res) => {
+  res.json({ message: "Test route working" });
 });
 
 

@@ -10,7 +10,7 @@
   import answer from "./routes/question-answer/answer.js";
   import userScore from "./routes/userScore.js";
   import questionRoutes from "./routes/question/questionRoutes.js";
-  import submitAnswerRoutes from './routes/submitAnswerRoutes.js';
+  import answerSubmit from "./routes/submitAnswerRoutes.js"
   import sessionRoutes from './routes/authRoutes/sessionRoutes.js';
   import bodyParser from "body-parser";
   import getLeaderboard from "./routes/question-answer/leaderboard.js";
@@ -22,22 +22,19 @@
   import path from "path";
   import { fileURLToPath } from "url";
 
+dotenv.config()
+const app = express();
 
-
-  if (process.env.NODE_ENV !== "production") {
-
-   dotenv.config();
-  }
-  
 
 
   // Utility to get __dirname in ES module scope
   const __filename = fileURLToPath(import.meta.url);
   const __dirname = path.dirname(__filename);
 
-  
+  const frontendPath = path.join(__dirname, "../frontend/dist");
 
-  const app = express();
+  app.use(express.static(frontendPath));
+
 
   // CORS Configuration
   app.use(
@@ -65,6 +62,7 @@
     try {
       await mongoose.connect(process.env.MONGO_URL);
     } catch (error) {
+      console.error("❌ Failed to connect to MongoDB:", error.message);
       process.exit(1); // Exit the process if MongoDB fails to connect
     }
   };
@@ -80,7 +78,7 @@
   app.use("/api", answer);
   app.use("/api", questionRoutes);
   app.use("/api", userScore);
-  app.use("/api/auth", submitAnswerRoutes);
+  app.use("/api", answerSubmit);
   console.log("Loading submitAnswerRoutes...");
   app.use("/api", getLeaderboard);
   app.use('/api', deleteQuestion);
@@ -88,9 +86,7 @@
   app.use('/api', guestUsers);
 
   // Serve React Frontend Static Build
-  const frontendPath = path.join(__dirname, "../frontend/dist");
-
-  app.use(express.static(frontendPath));
+  
 
   // Serve index.html for all unmatched routes
   app.get("*", (req, res) => {
@@ -106,7 +102,11 @@
   const port = process.env.PORT || 4001;
 
   // Start the server
+  console.log("Loading submitAnswerRoutes...");
+
   app.listen(port, () => {
     console.log(`🚀 Server is running on http://localhost:${port}`);
 
   });
+
+ 
