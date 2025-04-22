@@ -36,6 +36,9 @@ router.post("/answersubmit", async (req, res) => {
     let userScore = await Score.findOne({ userId, category: question.category });
     if (!userScore) {
       console.log("❌ User score not found for:", userId);
+      const allQuestions = await Question.find({ category: question.category });
+      const allQuestionIds = allQuestions.map(q => q._id);
+      
       // Create a new score document for the user
       userScore = new Score({
         userId,
@@ -45,13 +48,15 @@ router.post("/answersubmit", async (req, res) => {
         inCorrectAnswer: [],
         answeredQuestions: [],
         answers: [],
-        pendingAnswer: [],
+        pendingAnswer: allQuestionIds,
         feedback: new Map(),
       });
       await userScore.save();
-      console.log("✅ New score document created for user:", userId);
+      console.log("✅ New score document created with pendingAnswer for user:", userId);
+    } else {
+      console.log("✅ Found existing user score for:", userId);
     }
-
+    
     // Initialize missing fields
     userScore.correctAnswer = userScore.correctAnswer || [];
     userScore.inCorrectAnswer = userScore.inCorrectAnswer || [];
@@ -85,13 +90,14 @@ router.post("/answersubmit", async (req, res) => {
 
     await userScore.save();
     console.log("✅ Score updated and saved.");
+    const totalQuestions = userScore.answeredQuestions.length + userScore.pendingAnswer.length;
 
     return res.status(200).json({
       message: "Answer submitted successfully.",
       isCorrect,
       feedbackMessage: isCorrect ? "Correct answer!" : "Incorrect answer.",
       updatedScore: userScore.score,
-      totalQuestions: userScore.totalQuestions,
+      totalQuestions,
       pendingQuestions: userScore.pendingAnswer.length,
       hasAnswerd: userScore.answeredQuestions.includes(questionId),
     });

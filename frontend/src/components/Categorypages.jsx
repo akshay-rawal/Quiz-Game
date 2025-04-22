@@ -134,8 +134,9 @@ function CategoryPage() {
         selectedOption,
       });
 
-      const { isCorrect, updatedScore, feedbackMessage } = response.data;
+      const { isCorrect, updatedScore, feedbackMessage,pendingQuestions } = response.data;
 
+      setPendingQuestions(pendingQuestions);
       setFeedback((prev) => ({ ...prev, [questionId]: feedbackMessage }));
       setSubmittedAnswers((prev) => ({
         ...prev,
@@ -336,23 +337,23 @@ function CategoryPage() {
         </button>
       </div>
 
-      <div className="mt-12 w-full">
-        <h3 className="text-lg font-bold dark:text-white">Your Score</h3>
-        <p className={isDark ? "text-gray-200" : "text-black"}>
-          Your score: {score}
-        </p>
-        <p className={isDark ? "text-gray-200" : "text-black"}>
-          Correct answers: {correctAnswers.length}
-        </p>
-        <p className={isDark ? "text-gray-200" : "text-black"}>
-          Incorrect answers: {incorrectAnswers.length}
-        </p>
-        <p className={isDark ? "text-gray-200" : "text-black"}>
-          Pending questions: {pendingQuestions}
-        </p>
+        <div className="mt-12 w-full">
+          <h3 className="text-lg font-bold dark:text-white">Your Score</h3>
+          <p className={isDark ? "text-gray-200" : "text-black"}>
+            Your score: {score}
+          </p>
+          <p className={isDark ? "text-gray-200" : "text-black"}>
+            Correct answers: {correctAnswers.length}
+          </p>
+          <p className={isDark ? "text-gray-200" : "text-black"}>
+            Incorrect answers: {incorrectAnswers.length}
+          </p>
+          <p className={isDark ? "text-gray-200" : "text-black"}>
+            Pending questions: {pendingQuestions}
+          </p>
+        </div>
       </div>
-    </div>
-  );
+    );
 }
 
 export default CategoryPage;

@@ -31,7 +31,7 @@ const Leaderboard = () => {
     }
      else {
       try {
-        const response = await axiosInstance.post("/leaderboard");
+        const response = await axiosInstance.get("/leaderboard");
         setLeaderboard(response.data.leaderboard);
       } catch (error) {
         setError("Failed to load leaderboard. Please try again later.");
