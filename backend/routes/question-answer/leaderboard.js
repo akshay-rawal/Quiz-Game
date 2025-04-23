@@ -5,45 +5,70 @@ import authenticate from "../../middleware/authenticate.js";
 
 const router = express.Router();
 
-// In-memory cache for guest user data (should be maintained in memory)
-const guestUserCache = {}; // Ensure this is initialized somewhere else in the application
+const guestUserCache = {}; // In-memory cache
 
-// Route to get the leaderboard
-router.get("/leaderboard", async (req, res) => {
-  const isGuestUser = req.query.guest === "true"; // Check if the request is for a guest user
-  
+// Leaderboard route
+router.get("/leaderboard", authenticate, async (req, res) => {
+  const isGuestUser = req.query.guest === "true";
+  console.log("GET /leaderboard called");
+  console.log("Is Guest User:", isGuestUser);
+
   try {
     if (isGuestUser) {
-      // Fetch guest user leaderboard data from the cache
-      const leaderboard = Object.entries(guestUserCache).map(([category, data]) => ({
-        _id: category,
-        totalScore: data.score,
-        correctAnswers: data.correctAnswer.length,
-        incorrectAnswers: data.inCorrectAnswer.length,
-        pendingAnswers: data.pendingAnswer.length,
-      }));
+      console.log("Handling Guest User Leaderboard");
 
+      const leaderboard = Object.entries(guestUserCache).map(([category, data]) => {
+        console.log(`Guest Category: ${category}`, data);
+        return {
+          _id: category,
+          totalScore: data.score,
+          correctAnswers: data.correctAnswer.length,
+          incorrectAnswers: data.inCorrectAnswer.length,
+          pendingAnswers: data.pendingAnswer.length,
+        };
+      });
+
+      console.log("Guest Leaderboard:", leaderboard);
       return res.status(200).json({ leaderboard });
     }
 
-    // For regular authenticated users, fetch data from the database
+    // Authenticated User
     const authenticatedUserId = req.userId;
-    
-    // Aggregate user scores by category for the authenticated user
-    const userScores = await Score.aggregate([
+    console.log("Authenticated User ID:", authenticatedUserId);
+
+    if (!authenticatedUserId) {
+      console.log("No authenticated user ID found in request.");
+      return res.status(401).json({ message: "Unauthorized access." });
+    }
+
+    const userScores = await Score.aggregate(
+      [
+
       { $match: { userId: new mongoose.Types.ObjectId(authenticatedUserId) } },
       {
         $group: {
-          _id: "$category", // Group by category
-          totalScore: { $sum: "$score" }, // Sum up the scores
-          correctAnswers: { $sum: { $size: "$correctAnswer" } }, // Count of correct answers
-          incorrectAnswers: { $sum: { $size: "$inCorrectAnswer" } }, // Count of incorrect answers
-          pendingAnswers: { $sum: { $size: "$pendingAnswer" } }, // Count of pending answers
+          _id: "$category", // Now this is just a string like "Cinema"
+          totalScore: { $sum: "$score" },
+          correctAnswers: { $sum: { $size: "$correctAnswer" } },
+          incorrectAnswers: { $sum: { $size: "$inCorrectAnswer" } },
+          pendingAnswers: { $sum: { $size: "$pendingAnswer" } },
         },
       },
-      { $sort: { totalScore: -1 } }, // Sort by total score in descending order
+      {
+        $project: {
+          category: "$_id",
+          totalScore: 1,
+          correctAnswers: 1,
+          incorrectAnswers: 1,
+          pendingAnswers: 1,
+          _id: 0,
+        },
+      },
+      { $sort: { totalScore: -1 } },
     ]);
+    
 
+    console.log("User Scores from DB:", userScores);
     return res.status(200).json({ leaderboard: userScores });
   } catch (error) {
     console.error("Error fetching leaderboard:", error);

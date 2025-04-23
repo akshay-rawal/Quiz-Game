@@ -5,43 +5,54 @@ import axiosInstance from "../utills/axios";
 
 const Leaderboard = () => {
   const { isDark } = useTheme();
-  const { guestUser, scores } = useContext(GuestUserContext); // Get guest user scores
+  const { guestUser } = useContext(GuestUserContext);
   const [leaderboard, setLeaderboard] = useState([]);
-  const [loading, setLoading] = useState(true); // State to manage loading
-  const [error, setError] = useState(null); // State to manage errors
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   const fetchLeaderboard = async () => {
-    setLoading(true); // Start loading
-    setError(null); // Reset error
+    console.log("Fetching leaderboard...");
+    setLoading(true);
+    setError(null);
 
-    if (guestUser) {
-    
-      // Ensure scores is a valid object before using Object.entries
-      const safeScores = scores || {};
-      const guestLeaderboard = Object.entries(safeScores).map(([category, totalScore]) => ({
+    if (guestUser?.isGuest === true) {
+      console.log("Guest user detected");
+      const scores = guestUser?.scores || {};
+      console.log("Guest scores from context:", scores);
+
+      const guestLeaderboard = Object.entries(scores).map(([category, totalScore]) => ({
         _id: category,
+        category,
         totalScore: totalScore?.totalScore || 0,
         correctAnswers: totalScore?.correctAnswers || 0,
         incorrectAnswers: totalScore?.incorrectAnswers || 0,
-        pendingQuestions: totalScore?.pendingQuestions || 0,
+        pendingQuestions: totalScore?.pendingQuestions ?? 0,
       }));
-    
+
+      console.log("Generated guest leaderboard:", guestLeaderboard);
       setLeaderboard(guestLeaderboard);
-      setLoading(false); // End loading
-    }
-     else {
+      setLoading(false);
+    } else {
       try {
+        console.log("Authenticated user - Fetching from backend");
         const response = await axiosInstance.get("/leaderboard");
-        setLeaderboard(response.data.leaderboard);
+        const mappedData = response.data.leaderboard.map(item => ({
+          ...item,
+          pendingQuestions: item.pendingAnswers ?? 0,
+        }));
+        console.log("Mapped leaderboard data:", mappedData);
+        setLeaderboard(mappedData);
       } catch (error) {
+        console.error("Error fetching leaderboard:", error);
         setError("Failed to load leaderboard. Please try again later.");
       } finally {
-        setLoading(false); // End loading
+        setLoading(false);
       }
     }
   };
 
   useEffect(() => {
+    console.log("useEffect triggered – guestUser:", guestUser);
     fetchLeaderboard();
   }, [guestUser]);
 
@@ -73,12 +84,12 @@ const Leaderboard = () => {
           <tbody>
             {leaderboard.length > 0 ? (
               leaderboard.map((category) => (
-                <tr key={category._id} className={`${isDark ? "bg-gray-300 text-black" : "bg-gray-200 text-black"}`}>
-                  <td className="px-4 py-2">{category._id}</td>
+                <tr key={category._id || `${category.category}-${Math.random()}`} className={`${isDark ? "bg-gray-300 text-black" : "bg-gray-200 text-black"}`}>
+                  <td className="px-4 py-2">{category.category}</td>
                   <td className="px-4 py-2">{category.totalScore}</td>
                   <td className="px-4 py-2">{category.correctAnswers}</td>
                   <td className="px-4 py-2">{category.incorrectAnswers}</td>
-                  <td className="px-4 py-2">{category.pendingQuestions}</td>
+                  <td className="px-4 py-2">{category.pendingQuestions ?? 0}</td>
                 </tr>
               ))
             ) : (
