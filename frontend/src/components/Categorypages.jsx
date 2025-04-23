@@ -116,23 +116,23 @@ function CategoryPage() {
         userId: user.userId,
       });
   
-      let isCorrect = false;
   
-      if (isGuest) {        // Handle guest user submission
-        console.log("Handling guest user submission");
-        isCorrect = selectedOption === questions[questionIndex].correctAnswer;
+      if (isGuest) {
+        const isCorrect = selectedOption === questions[questionIndex].correctAnswer;
         handleGuestUserScoreUpdate(questionId, selectedOption, isCorrect);
+        setCorrectAnswers((prev) => (isCorrect ? [...prev, questionId] : prev));
+        setIncorrectAnswers((prev) => (!isCorrect ? [...prev, questionId] : prev));
       } else {
-        // Regular user submission
         const response = await axiosInstance.post("/answersubmit", {
           userId: user.userId,
           questionId,
           selectedOption,
         });
-  
+      
         const { updatedScore, feedbackMessage, pendingQuestions } = response.data;
-        console.log("Submit response:", response.data);
-  
+      
+        const isCorrect = selectedOption === questions[questionIndex].correctAnswer;
+      
         setPendingQuestions(pendingQuestions);
         setFeedback((prev) => ({ ...prev, [questionId]: feedbackMessage }));
         setSubmittedAnswers((prev) => ({
@@ -140,9 +140,11 @@ function CategoryPage() {
           [questionId]: { submitted: true, clicked: false },
         }));
         setScore(updatedScore);
+      
         setCorrectAnswers((prev) => (isCorrect ? [...prev, questionId] : prev));
         setIncorrectAnswers((prev) => (!isCorrect ? [...prev, questionId] : prev));
       }
+      
     } catch (error) {
       console.error("Submit error:", error);
       setFeedback((prev) => ({
