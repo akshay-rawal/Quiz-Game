@@ -4,7 +4,6 @@ import express from "express";
 
 const router = express.Router();
 
-
 router.post("/answersubmit", async (req, res) => {
   console.log("✅ POST /answersubmit hit");
 
@@ -38,8 +37,7 @@ router.post("/answersubmit", async (req, res) => {
       console.log("❌ User score not found for:", userId);
       const allQuestions = await Question.find({ category: question.category });
       const allQuestionIds = allQuestions.map(q => q._id);
-      
-      // Create a new score document for the user
+
       userScore = new Score({
         userId,
         category: question.category,
@@ -56,40 +54,52 @@ router.post("/answersubmit", async (req, res) => {
     } else {
       console.log("✅ Found existing user score for:", userId);
     }
-    
-    // Initialize missing fields
+
+    // Initialize missing fields (just in case)
     userScore.correctAnswer = userScore.correctAnswer || [];
     userScore.inCorrectAnswer = userScore.inCorrectAnswer || [];
     userScore.answeredQuestions = userScore.answeredQuestions || [];
     userScore.answers = userScore.answers || [];
     userScore.pendingAnswer = userScore.pendingAnswer || [];
 
-    console.log("📊 Current score:", userScore.score);
+    const alreadyAnswered = userScore.answeredQuestions.includes(questionId.toString());
 
-    if (isCorrect) {
-      userScore.score += 2;
-      userScore.correctAnswer.push(questionId);
-      console.log("🎯 Correct answer. +2 score");
+    if (!alreadyAnswered) {
+      if (isCorrect) {
+        if (!userScore.correctAnswer.includes(questionId.toString())) {
+          userScore.score += 2;
+          userScore.correctAnswer.push(questionId);
+        }
+        console.log("🎯 Correct answer. +2 score");
+      } else {
+        if (!userScore.inCorrectAnswer.includes(questionId.toString())) {
+          userScore.inCorrectAnswer.push(questionId);
+        }
+        console.log("❌ Incorrect answer.");
+      }
+
+      userScore.answeredQuestions.push(questionId);
+
+      userScore.answers.push({
+        questionId,
+        selectedOption,
+        isCorrect,
+        category: question.category,
+      });
     } else {
-      userScore.inCorrectAnswer.push(questionId);
-      console.log("❌ Incorrect answer.");
+      console.log("⚠️ Question was already answered. Skipping score update.");
     }
 
     userScore.feedback.set(questionId.toString(), isCorrect ? "Correct answer!" : "Incorrect answer.");
-    userScore.answeredQuestions.push(questionId);
+    userScore.markModified("feedback");
+
     userScore.pendingAnswer = userScore.pendingAnswer.filter(
       (id) => id.toString() !== questionId.toString()
     );
 
-    userScore.answers.push({
-      questionId,
-      selectedOption,
-      isCorrect,
-      category: question.category,
-    });
-
     await userScore.save();
-    console.log("✅ Score updated and saved.");
+    console.log(`📥 Saving userScore: { score: ${userScore.score}, correct: ${userScore.correctAnswer.length}, incorrect: ${userScore.inCorrectAnswer.length}, answered: ${userScore.answeredQuestions.length}, pending: ${userScore.pendingAnswer.length} }`);
+
     const totalQuestions = userScore.answeredQuestions.length + userScore.pendingAnswer.length;
 
     return res.status(200).json({
@@ -99,7 +109,7 @@ router.post("/answersubmit", async (req, res) => {
       updatedScore: userScore.score,
       totalQuestions,
       pendingQuestions: userScore.pendingAnswer.length,
-      hasAnswerd: userScore.answeredQuestions.includes(questionId),
+      hasAnswered: alreadyAnswered,
     });
   } catch (error) {
     console.error("💥 Error in submit-answer route:", error.stack);

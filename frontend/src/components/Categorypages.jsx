@@ -7,11 +7,12 @@ import { GuestUserContext } from "../guestuser/GuestuserContext.jsx";
 
 
 function CategoryPage() {
-  const { guestUser, updateGuestUserScore } = useContext(GuestUserContext);
-
-  const { token, user } = useSelector((state) => state.user);
+  const { updateGuestUserScore } = useContext(GuestUserContext);
+  const isGuest = useSelector((state) => state.user.isGuest);
+    const { token, user } = useSelector((state) => state.user);
   const { category } = useParams();
   const navigate = useNavigate();
+
   const [selectedAnswers, setSelectedAnswers] = useState({});
   const [totalPage, setTotalPage] = useState(1);
   const [currentPage, setCurrentPage] = useState(1);
@@ -31,47 +32,46 @@ function CategoryPage() {
   const fetchData = async () => {
     try {
       setLoading(true);
-
-      if (guestUser.isGuest) {
-        // Handle guest user data 
+      console.log("Fetching data for category:", category);
+  
+      if (isGuest) {        console.log("Guest user detected. Fetching guest questions...");
         const guestQuestionsResponse = await axiosInstance.get(
           `/questions/${category}/guest`,
-          {
-            params: { page: currentPage, limit: 5 },
-          }
+          { params: { page: currentPage, limit: 5 } }
         );
-        if (
-          guestQuestionsResponse.data &&
-          guestQuestionsResponse.data.questions
-        ) {
+        console.log("Guest questions response:", guestQuestionsResponse.data);
+  
+        if (guestQuestionsResponse.data?.questions) {
           setQuestions(guestQuestionsResponse.data.questions);
           setTotalPage(guestQuestionsResponse.data.totalPages);
-          setPendingQuestions(
-            guestQuestionsResponse.data.pendingAnswerCount || 0
-          );
+          setPendingQuestions(guestQuestionsResponse.data.pendingAnswerCount || 0);
         } else {
           setError("Failed to load questions for guest user.");
         }
-
-        return; // Exit fetchData for guest users
+        return;
       }
-
+  
+      // User logic (non-guest)
       const questionsResponse = await axiosInstance.get(
         `/questions/${category}/${user.userId}`,
         { params: { page: currentPage, limit: 5 } }
       );
-
-      if (questionsResponse.data && questionsResponse.data.questions) {
+      console.log("Questions response:", questionsResponse.data);
+  
+      if (questionsResponse.data?.questions) {
         setQuestions(questionsResponse.data.questions);
         setTotalPage(questionsResponse.data.totalPages);
         setPendingQuestions(questionsResponse.data.pendingAnswerCount);
       } else {
         setError("Failed to load questions.");
       }
-
+  
+      // Fetch user score
       const scoreResponse = await axiosInstance.get(
         `/user-score/${user.userId}/${category}`
       );
+      console.log("Score response:", scoreResponse.data);
+  
       if (scoreResponse.data.userScore) {
         const {
           score,
@@ -79,15 +79,17 @@ function CategoryPage() {
           inCorrectAnswer,
           answeredQuestions,
           pendingAnswer,
+          answers,
         } = scoreResponse.data.userScore;
+  
         setScore(score || 0);
         setCorrectAnswers(correctAnswer || []);
         setIncorrectAnswers(inCorrectAnswer || []);
         setPendingQuestions(pendingAnswer.length || 0);
         setAnsweredQuestions(answeredQuestions || []);
-
+  
         const feedbackMap = {};
-        scoreResponse.data.userScore.answers.forEach((ans) => {
+        answers.forEach((ans) => {
           feedbackMap[ans.questionId] = ans.isCorrect
             ? "Correct answer!"
             : "Incorrect answer.";
@@ -95,73 +97,67 @@ function CategoryPage() {
         setFeedback(feedbackMap);
       }
     } catch (error) {
+      console.error("Error fetching data:", error);
       setError("Failed to load questions.");
     } finally {
       setLoading(false);
     }
   };
-
-  const nextPage = () => {
-    if (currentPage < totalPage) {
-      setCurrentPage((prevPage) => prevPage + 1);
-    }
-  };
-
-  const prevPage = () => {
-    if (currentPage > 1) {
-      setCurrentPage((prevPage) => prevPage - 1);
-    }
-  };
-
-  useEffect(() => {
-    if (guestUser.isGuest || (user && token)) {
-      fetchData();
-    } else {
-      navigate("/");
-    }
-  }, [category, user, token, currentPage, guestUser.isGuest]);
+  
 
   const handleSubmit = async (questionIndex, selectedOption) => {
     const questionId = questions[questionIndex]._id;
-    if (submittedAnswers[questionId]) {
-      return;
-    }
-
+    if (submittedAnswers[questionId]) return;
+  
     try {
-      const response = await axiosInstance.post("/answersubmit", {
-        userId: user.userId,  
+      console.log("Submitting answer:", {
         questionId,
         selectedOption,
+        userId: user.userId,
       });
-
-      const { isCorrect, updatedScore, feedbackMessage,pendingQuestions } = response.data;
-
-      setPendingQuestions(pendingQuestions);
-      setFeedback((prev) => ({ ...prev, [questionId]: feedbackMessage }));
-      setSubmittedAnswers((prev) => ({
-        ...prev,
-        [questionId]: { submitted: true, clicked: false },
-      }));
-      setScore(updatedScore);
-      setCorrectAnswers((prev) => (isCorrect ? [...prev, questionId] : prev));
-      setIncorrectAnswers((prev) =>
-        !isCorrect ? [...prev, questionId] : prev
-      );
+  
+      let isCorrect = false;
+  
+      if (isGuest) {        // Handle guest user submission
+        console.log("Handling guest user submission");
+        isCorrect = selectedOption === questions[questionIndex].correctAnswer;
+        handleGuestUserScoreUpdate(questionId, selectedOption, isCorrect);
+      } else {
+        // Regular user submission
+        const response = await axiosInstance.post("/answersubmit", {
+          userId: user.userId,
+          questionId,
+          selectedOption,
+        });
+  
+        const { updatedScore, feedbackMessage, pendingQuestions } = response.data;
+        console.log("Submit response:", response.data);
+  
+        setPendingQuestions(pendingQuestions);
+        setFeedback((prev) => ({ ...prev, [questionId]: feedbackMessage }));
+        setSubmittedAnswers((prev) => ({
+          ...prev,
+          [questionId]: { submitted: true, clicked: false },
+        }));
+        setScore(updatedScore);
+        setCorrectAnswers((prev) => (isCorrect ? [...prev, questionId] : prev));
+        setIncorrectAnswers((prev) => (!isCorrect ? [...prev, questionId] : prev));
+      }
     } catch (error) {
+      console.error("Submit error:", error);
       setFeedback((prev) => ({
         ...prev,
         [questionId]: "There was an error submitting your answer.",
       }));
     }
   };
+  
 
   const handleShowAnswer = (questionIndex) => {
     const questionId = questions[questionIndex]._id;
+    console.log("Showing answer for question:", questionId);
 
-    setShowAnswers((prev) => ({
-      ...prev,
-      [questionIndex]: true,
-    }));
+    setShowAnswers((prev) => ({ ...prev, [questionIndex]: true }));
     setSubmittedAnswers((prev) => ({
       ...prev,
       [questionId]: {
@@ -171,16 +167,37 @@ function CategoryPage() {
     }));
   };
 
-  const handleGuestUserScoreUpdate = (
-    questionId,
-    selectedOption,
-    isCorrect
-  ) => {
-    if (guestUser.isGuest) {
+  const handleGuestUserScoreUpdate = (questionId, selectedOption, isCorrect) => {
+    if (isGuest) {      console.log("Updating guest score:", { questionId, selectedOption, isCorrect });
       updateGuestUserScore(questionId, selectedOption, isCorrect);
     }
   };
+  
 
+  const nextPage = () => {
+    if (currentPage < totalPage) {
+      console.log("Navigating to next page");
+      setCurrentPage((prev) => prev + 1);
+    }
+  };
+
+  const prevPage = () => {
+    if (currentPage > 1) {
+      console.log("Navigating to previous page");
+      setCurrentPage((prev) => prev - 1);
+    }
+  };
+  const userId = user?.userId;
+
+  useEffect(() => {
+    if (isGuest || (userId && token)) {
+      console.log("Effect triggered for category:", category);
+      fetchData();
+    }
+  }, [category, userId, token, currentPage, isGuest]);
+  
+ 
+ 
   return (
     <div
       className={`p-6 min-h-screen ${

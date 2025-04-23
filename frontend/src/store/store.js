@@ -9,79 +9,81 @@ const parseJSON = (value, fallback = null) => {
   }
 };
 
-// Fetch initial values from localStorage safely
+// Initial user and token fetched from localStorage
 const initialUser = parseJSON(localStorage.getItem('user'), null);
 const initialToken = localStorage.getItem('token') || null;
 
-
-
-// Initial state for the user slice
+// Initial state
 const initialState = {
-  user: initialUser || null,  // No guest user here
-  role: initialUser ? 'user' : 'guest', // Default to guest if no user
+  user: initialUser || null,
   token: initialToken,
   userId: initialUser?.userId || null,
+  role: initialUser ? 'user' : 'guest',
+  isGuest: initialUser ? false : true, // Track guest status
 };
 
-// User slice
 const userSlice = createSlice({
   name: 'user',
   initialState,
   reducers: {
     login: (state, action) => {
       const { user, token } = action.payload;
-
-      // Ensure the payload contains `userId`
       const userId = user?.userId;
 
-      if (!userId) {
-        return;
-      }
+      if (!userId) return;
 
       state.user = user;
       state.token = token;
-      state.userId = user.userId || null;
-      state.role = 'user';  // Set role to 'user' when logged in
+      state.userId = userId;
+      state.role = 'user';
+      state.isGuest = false; // User is authenticated, not a guest
 
-      // Persist session data in localStorage
       localStorage.setItem('user', JSON.stringify(user));
       localStorage.setItem('token', token);
-      localStorage.setItem('userId', user.userId);
-      localStorage.setItem('role', 'user');  // Store role as 'user'
+      localStorage.setItem('userId', userId);
+      localStorage.setItem('role', 'user');
+
+      console.log('[Redux] Logged in:', user);
     },
     logout: (state) => {
       state.user = null;
       state.token = null;
       state.userId = null;
-      state.role = 'guest'; // Set role to 'guest' when logged out
+      state.role = 'guest';
+      state.isGuest = true; // Now considered a guest user
 
       localStorage.removeItem('user');
       localStorage.removeItem('token');
       localStorage.removeItem('userId');
-      localStorage.removeItem('role'); // Remove role from localStorage
+      localStorage.removeItem('role');
       localStorage.removeItem('isDark');
+
+      console.log('[Redux] Logged out. Now guest.');
     },
     refreshToken: (state, action) => {
       state.token = action.payload.token;
     },
     setGuest: (state) => {
-      // Set guest user data without persisting in localStorage
+      const guestId = 'guest-' + Date.now(); // Create a unique guest ID
+
       state.user = {
-        userId: 'guest-' + Date.now(),  // Temporary unique ID for guest
+        userId: guestId,
         username: 'Guest User',
         role: 'guest',
       };
-      state.token = null; // No token for guest
-      state.userId = state.user.userId;
-      state.role = 'guest'; // Set role to 'guest'
+      state.token = null;
+      state.userId = guestId;
+      state.role = 'guest';
+      state.isGuest = true; // Mark as guest user
+
+      console.log('[Redux] Guest user set:', guestId);
     }
   },
 });
 
-// Export actions
-export const { login, logout, setGuest } = userSlice.actions;
+export const { login, logout, setGuest, refreshToken } = userSlice.actions;
 
-// Configure and export the store
+// Configure store
 const store = configureStore({
   reducer: {
     user: userSlice.reducer,
